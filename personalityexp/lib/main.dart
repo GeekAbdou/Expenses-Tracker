@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //   date: DateTime.now(),
     // ),
   ];
-
+bool showchart = false ;
   List<Transaction> get _recentTransactions {
     return _userTransactions.where((tx) {
       return tx.date.isAfter(
@@ -109,28 +109,65 @@ class _MyHomePageState extends State<MyHomePage> {
 }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Personal Expenses',
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _startAddNewTransaction(context),
-          ),
-        ],
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final appbar = AppBar(
+      title: Text(
+       'Personal Expenses',
       ),
+      actions: <Widget>[
+       IconButton(
+         icon: Icon(Icons.add),
+    onPressed: () => _startAddNewTransaction(context),
+        ),
+        ],
+    );
+    final mediaQuery = MediaQuery.of(context);
+    final chartWidget = Container(
+        height: (mediaQuery.size.height - appbar.preferredSize.height - mediaQuery.padding.top) *.3,
+        child: Chart(_recentTransactions)
+    );
+    final chartWidgetLandscape = Container(
+        height: (mediaQuery.size.height - appbar.preferredSize.height - mediaQuery.padding.top),
+        child: Chart(_recentTransactions)
+    );
+    final txWidget = Container(
+        height: (mediaQuery.size.height - appbar.preferredSize.height - mediaQuery.padding.top) *.7,
+        child: TransactionList(_userTransactions,deleteTransaction)
+    );
+    final txWidgetLandscape = Container(
+        height: (mediaQuery.size.height - appbar.preferredSize.height - mediaQuery.padding.top),
+        child: TransactionList(_userTransactions,deleteTransaction)
+    );
+    final LandscapeSwichBtn = Row (
+      children: [
+        Text ('Show Chart'),
+        Switch(
+          value: showchart ,
+          onChanged: (val){
+            setState(() {
+              showchart = val;
+            });
+          },
+        )
+      ],
+    );
+    return Scaffold(
+      appBar: appbar,
       body: SingleChildScrollView(
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Chart(_recentTransactions),
-            TransactionList(_userTransactions,deleteTransaction),
+          children:[
+            if(isLandscape ) LandscapeSwichBtn,
+            if (showchart && isLandscape ) chartWidgetLandscape,
+            if (!showchart && isLandscape ) txWidgetLandscape,
+            if(!isLandscape) chartWidget,
+            if(!isLandscape) txWidget,
           ],
+
         ),
       ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
